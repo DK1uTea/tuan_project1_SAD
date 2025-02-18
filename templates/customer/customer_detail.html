@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Detail</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            color: #555;
+            margin: 5px 0;
+        }
+        a, button {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        a {
+            background: #007bff;
+            color: white;
+        }
+        a:hover {
+            background: #0056b3;
+        }
+        button {
+            background: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ customer.first_name }} {{ customer.last_name }}</h1>
+        <p>Email: {{ customer.email }}</p>
+        <p>Address: {{ customer.address }}</p>
+        <a href="{% url 'customer_update' customer.id %}">Edit</a>
+        <form method="post" action="{% url 'customer_delete' customer.id %}">
+            {% csrf_token %}
+            <button type="submit">Delete</button>
+        </form>
+        <a href="{% url 'customer_list' %}">Back to List</a>
+    </div>
+</body>
+</html>
