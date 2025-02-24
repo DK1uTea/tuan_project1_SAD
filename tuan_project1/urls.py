@@ -16,9 +16,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from book.views import BookViewSet
+from cart.views import CartViewSet, CartItemViewSet
+from customer.views import CustomerViewSet
 from book.views import book_list
 from cart.views import add_to_cart, cart, checkout
 from django.contrib.auth.views import LoginView
+
+router = DefaultRouter()
+router.register(r'books', BookViewSet)
+router.register(r'carts', CartViewSet)
+router.register(r'cart-items', CartItemViewSet)
+router.register(r'customers', CustomerViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,4 +39,5 @@ urlpatterns = [
     path('cart/', cart, name='cart'),
     path('checkout/', checkout, name='checkout'),
     path('', book_list, name='book_list'),
+    path('api/', include(router.urls)),  # Thêm dòng này
 ]

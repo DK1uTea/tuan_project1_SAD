@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from .models import Cart, CartItem
 from book.models import Book
 from customer.models import Customer
+from rest_framework import viewsets
+from .serializers import CartSerializer, CartItemSerializer
 
 @login_required
 def add_to_cart(request, book_id):
@@ -28,3 +30,11 @@ def checkout(request):
     cart_items = CartItem.objects.filter(cart=cart)
     # Add your checkout logic here
     return render(request, 'cart/checkout.html', {'cart_items': cart_items})
+
+class CartViewSet(viewsets.ModelViewSet):
+    queryset = Cart.objects.all()
+    serializer_class = CartSerializer
+
+class CartItemViewSet(viewsets.ModelViewSet):
+    queryset = CartItem.objects.all()
+    serializer_class = CartItemSerializer

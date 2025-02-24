@@ -3,6 +3,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from .models import Customer
 from .forms import UserRegistrationForm, CustomerForm
+from rest_framework import viewsets
+from .serializers import CustomerSerializer
 
 def customer_list(request):
     customers = Customer.objects.all()
@@ -72,3 +74,7 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect('login')
+
+class CustomerViewSet(viewsets.ModelViewSet):
+    queryset = Customer.objects.all()
+    serializer_class = CustomerSerializer
