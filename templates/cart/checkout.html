@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Checkout</title>
+</head>
+<body>
+    <h1>Checkout</h1>
+    <ul>
+        {% for item in cart_items %}
+        <li>
+            <h2>{{ item.book.title }}</h2>
+            <p>Quantity: {{ item.quantity }}</p>
+            <p>Price: ${{ item.book.price }}</p>
+        </li>
+        {% endfor %}
+    </ul>
+    <form method="post" action="{% url 'process_checkout' %}">
+        {% csrf_token %}
+        <button type="submit">Place Order</button>
+    </form>
+</body>
+</html>

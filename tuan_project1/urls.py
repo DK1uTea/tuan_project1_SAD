@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from book.views import book_list
-from cart.views import add_to_cart, cart
+from cart.views import add_to_cart, cart, checkout
 from django.contrib.auth.views import LoginView
 
 urlpatterns = [
@@ -27,5 +27,6 @@ urlpatterns = [
     path('customers/', include('customer.urls')),
     path('add_to_cart/<int:book_id>/', add_to_cart, name='add_to_cart'),
     path('cart/', cart, name='cart'),
+    path('checkout/', checkout, name='checkout'),
     path('', book_list, name='book_list'),
 ]
