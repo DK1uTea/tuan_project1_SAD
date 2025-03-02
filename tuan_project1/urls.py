@@ -31,6 +31,7 @@ router.register(r'cart-items', CartItemViewSet)
 router.register(r'customers', CustomerViewSet)
 
 urlpatterns = [
+    # view urls
     path('admin/', admin.site.urls),
     path('login/', LoginView.as_view(template_name='customer/login.html'), name='login'),
     path('register/', include('customer.urls')),
@@ -39,5 +40,8 @@ urlpatterns = [
     path('cart/', cart, name='cart'),
     path('checkout/', checkout, name='checkout'),
     path('', book_list, name='book_list'),
-    path('api/', include(router.urls)),  # Thêm dòng này
+
+    # API urls
+    path('api/', include(router.urls)),  # Include API routes
+    path('api/cart/', include('cart.urls')),  # Include cart API routes
 ]

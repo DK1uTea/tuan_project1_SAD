@@ -63,16 +63,28 @@
 <body>
     <div class="container">
         <h1>Your Cart</h1>
-        <ul>
-            {% for item in cart_items %}
-            <li>
-                <h2>{{ item.book.title }}</h2>
-                <p>Quantity: {{ item.quantity }}</p>
-                <p>Price: ${{ item.book.price }}</p>
-            </li>
-            {% endfor %}
+        <ul id="cart-items">
+            <!-- Cart items will be inserted here by JavaScript -->
         </ul>
         <a href="{% url 'checkout' %}">Checkout</a>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/cart/api/get_cart_items/')
+                .then(response => response.json())
+                .then(data => {
+                    const cartItems = document.getElementById('cart-items');
+                    data.forEach(item => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <h2>${item.book.title}</h2>
+                            <p>Quantity: ${item.quantity}</p>
+                            <p>Price: $${item.book.price}</p>
+                        `;
+                        cartItems.appendChild(li);
+                    });
+                });
+        });
+    </script>
 </body>
 </html>

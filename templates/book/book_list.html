@@ -78,15 +78,31 @@
                             <h2>${book.title}</h2>
                             <p>${book.description}</p>
                             <p>Price: $${book.price}</p>
-                            <form method="post" action="/add_to_cart/${book.id}/">
-                                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-                                <button type="submit">Add to Cart</button>
-                            </form>
+                            <button onclick="addToCart(${book.id})">Add to Cart</button>
                         `;
                         bookList.appendChild(li);
                     });
                 });
         });
+
+        function addToCart(bookId) {
+            fetch('/api/cart/api/add_to_cart/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ book_id: bookId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
     </script>
 </body>
 </html>

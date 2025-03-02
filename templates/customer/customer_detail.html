@@ -55,16 +55,29 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>{{ customer.first_name }} {{ customer.last_name }}</h1>
-        <p>Email: {{ customer.email }}</p>
-        <p>Address: {{ customer.address }}</p>
-        <a href="{% url 'customer_update' customer.id %}">Edit</a>
-        <form method="post" action="{% url 'customer_delete' customer.id %}">
-            {% csrf_token %}
-            <button type="submit">Delete</button>
-        </form>
-        <a href="{% url 'customer_list' %}">Back to List</a>
+    <div class="container" id="customer-detail">
+        <!-- Customer details will be inserted here by JavaScript -->
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const customerId = window.location.pathname.split('/')[2];
+            fetch(`/api/customers/${customerId}/`)
+                .then(response => response.json())
+                .then(customer => {
+                    const customerDetail = document.getElementById('customer-detail');
+                    customerDetail.innerHTML = `
+                        <h1>${customer.first_name} ${customer.last_name}</h1>
+                        <p>Email: ${customer.email}</p>
+                        <p>Address: ${customer.address}</p>
+                        <a href="/customers/${customer.id}/edit/">Edit</a>
+                        <form method="post" action="/customers/${customer.id}/delete/">
+                            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                            <button type="submit">Delete</button>
+                        </form>
+                        <a href="/customers/">Back to List</a>
+                    `;
+                });
+        });
+    </script>
 </body>
 </html>
