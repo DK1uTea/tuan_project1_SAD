@@ -81,3 +81,16 @@ def api_get_cart_items(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
     else:
         return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+
+# API view to confirm order
+@api_view(['POST'])
+def api_confirm_order(request):
+    if request.user.is_authenticated:
+        customer = request.user.customer
+        cart = Cart.objects.get(customer=customer)
+        cart_items = CartItem.objects.filter(cart=cart)
+        # Add your order confirmation logic here
+        cart_items.delete()  # Clear the cart after confirming the order
+        return Response({'message': 'Order confirmed successfully'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)

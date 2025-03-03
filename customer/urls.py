@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import customer_list, customer_detail, customer_create, customer_update, customer_delete, register, login_view, logout_view, CustomerViewSet
+from .views import customer_list, customer_detail, customer_create, customer_update, customer_delete, register, login_view, logout_view, CustomerViewSet, api_register, api_login
 
 # Create a router and register our viewsets with it
 router = DefaultRouter()
@@ -19,4 +19,6 @@ urlpatterns = [
 
     # API routes
     path('api/', include(router.urls)),  # Include API routes
+    path('api/register/', api_register, name='api_register'),  # API endpoint for registration
+    path('api/login/', api_login, name='api_login'),  # API endpoint for login
 ]

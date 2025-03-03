@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Confirm Delete</title>
+    <title>Checkout</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -9,9 +9,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
             margin: 0;
+            padding: 20px;
         }
         .container {
             background: white;
@@ -24,9 +23,30 @@
         h1 {
             color: #333;
         }
+        ul {
+            list-style: none;
+            padding: 0;
+            width: 100%;
+        }
+        li {
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        h2 {
+            margin: 0;
+            color: #333;
+        }
+        p {
+            margin: 5px 0;
+            color: #555;
+        }
         button {
             width: 100%;
-            background: #dc3545;
+            background: #28a745;
             color: white;
             border: none;
             padding: 10px;
@@ -35,7 +55,7 @@
             cursor: pointer;
         }
         button:hover {
-            background: #c82333;
+            background: #218838;
         }
         .cancel-link {
             display: block;
@@ -50,12 +70,49 @@
 </head>
 <body>
     <div class="container">
-        <h1>Are you sure you want to delete {{ customer.first_name }} {{ customer.last_name }}?</h1>
-        <form method="post">
-            {% csrf_token %}
-            <button type="submit">Yes, delete</button>
-        </form>
-        <a href="{% url 'customer_detail' customer.id %}" class="cancel-link">Cancel</a>
+        <h1>Order Summary</h1>
+        <ul id="order-items">
+            <!-- Order items will be inserted here by JavaScript -->
+        </ul>
+        <button id="confirm-order">Confirm Order</button>
+        <a href="{% url 'cart' %}" class="cancel-link">Cancel</a>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/cart/api/get_cart_items/')
+                .then(response => response.json())
+                .then(data => {
+                    const orderItems = document.getElementById('order-items');
+                    data.forEach(item => {
+                        const li = document.createElement('li');
+                        li.innerHTML = `
+                            <h2>${item.book.title}</h2>
+                            <p>Quantity: ${item.quantity}</p>
+                            <p>Price: $${item.book.price}</p>
+                        `;
+                        orderItems.appendChild(li);
+                    });
+                });
+
+            document.getElementById('confirm-order').addEventListener('click', function() {
+                fetch('/api/cart/api/confirm_order/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        alert(data.message);
+                        window.location.href = '{% url "book_list" %}';
+                    } else {
+                        alert('An error occurred while confirming the order.');
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

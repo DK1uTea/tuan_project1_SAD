@@ -5,6 +5,10 @@ from .models import Customer
 from .forms import UserRegistrationForm, CustomerForm
 from rest_framework import viewsets
 from .serializers import CustomerSerializer
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authtoken.models import Token
 
 # View to display the list of customers
 def customer_list(request):
@@ -87,3 +91,31 @@ def logout_view(request):
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
+
+@api_view(['POST'])
+def api_register(request):
+    user_form = UserRegistrationForm(request.data)
+    customer_form = CustomerForm(request.data)
+    if user_form.is_valid() and customer_form.is_valid():
+        user = user_form.save(commit=False)
+        user.set_password(user_form.cleaned_data['password'])
+        user.save()
+        customer = customer_form.save(commit=False)
+        customer.user = user
+        customer.save()
+        return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
+    else:
+        errors = {**user_form.errors, **customer_form.errors}
+        return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def api_login(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+    user = authenticate(request, username=username, password=password)
+    if user is not None:
+        login(request, user)
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({'token': token.key, 'message': 'Login successful'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
