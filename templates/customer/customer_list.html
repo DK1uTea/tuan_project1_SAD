@@ -1,77 +1,86 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Customer List</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-            width: 100%;
-            max-width: 400px;
-        }
-        li {
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 10px;
-            text-align: center;
-        }
-        a {
-            text-decoration: none;
-            color: #007bff;
-            font-weight: bold;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        .add-customer {
-            display: inline-block;
-            margin-top: 15px;
-            background: #28a745;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 4px;
-            text-decoration: none;
-        }
-        .add-customer:hover {
-            background: #218838;
-        }
-    </style>
-</head>
-<body>
-    <h1>Customers</h1>
-    <ul id="customer-list">
-        <!-- Customer items will be inserted here by JavaScript -->
-    </ul>
-    <a href="{% url 'customer_create' %}" class="add-customer">Add New Customer</a>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/api/customers/')
-                .then(response => response.json())
-                .then(data => {
-                    const customerList = document.getElementById('customer-list');
-                    data.forEach(customer => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `
-                            <a href="/customers/${customer.id}/">${customer.first_name} ${customer.last_name}</a>
-                        `;
-                        customerList.appendChild(li);
-                    });
+{% extends 'base.html' %}
+
+{% block title %}Customer List - Book Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0;
+        padding: 20px;
+    }
+    h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    ul {
+        list-style: none;
+        padding: 0;
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+    li {
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    a {
+        text-decoration: none;
+        color: #007bff;
+        font-weight: bold;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+    .add-customer {
+        display: block;
+        width: 200px;
+        margin: 20px auto;
+        background: #28a745;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 4px;
+        text-decoration: none;
+        text-align: center;
+    }
+    .add-customer:hover {
+        background: #218838;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Customers</h1>
+<ul id="customer-list">
+    <!-- Customer items will be inserted here by JavaScript -->
+</ul>
+<a href="{% url 'customer_create' %}" class="add-customer">Add New Customer</a>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/customers/')
+            .then(response => response.json())
+            .then(data => {
+                const customerList = document.getElementById('customer-list');
+                data.forEach(customer => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <a href="/customers/${customer.id}/">${customer.first_name} ${customer.last_name}</a>
+                    `;
+                    customerList.appendChild(li);
                 });
-        });
-    </script>
-</body>
-</html>
+            });
+    });
+</script>
+{% endblock %}

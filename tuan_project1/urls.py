@@ -40,8 +40,12 @@ urlpatterns = [
     path('cart/', cart, name='cart'),
     path('checkout/', checkout, name='checkout'),
     path('', book_list, name='book_list'),
+    path('order/', include('order.urls')),
 
     # API urls
     path('api/', include(router.urls)),  # Include API routes
     path('api/cart/', include('cart.urls')),  # Include cart API routes
+    path('api/order/', include('order.urls')),  # Include order API routes
+    path('api/shipment/', include('shipment.urls')),  # Include shipment API routes
+    path('api/payment/', include('payment.urls')),  # Include payment API routes
 ]

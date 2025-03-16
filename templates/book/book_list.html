@@ -1,108 +1,113 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Book List</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        a {
-            text-decoration: none;
-            color: #007bff;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        a:hover {
-            text-decoration: underline;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-            width: 100%;
-            max-width: 600px;
-        }
-        li {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 15px;
-        }
-        h2 {
-            margin: 0;
-            color: #333;
-        }
-        p {
-            margin: 5px 0;
-            color: #555;
-        }
-        button {
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-        }
-        button:hover {
-            background: #218838;
-        }
-    </style>
-</head>
-<body>
-    <h1>Books</h1>
-    <a href="{% url 'logout' %}">Logout</a>
-    <ul id="book-list">
-        <!-- Book items will be inserted here by JavaScript -->
-    </ul>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/api/books/')
-                .then(response => response.json())
-                .then(data => {
-                    const bookList = document.getElementById('book-list');
-                    data.forEach(book => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `
-                            <h2>${book.title}</h2>
-                            <p>${book.description}</p>
-                            <p>Price: $${book.price}</p>
-                            <button onclick="addToCart(${book.id})">Add to Cart</button>
-                        `;
-                        bookList.appendChild(li);
-                    });
-                });
-        });
+{% extends 'base.html' %}
 
-        function addToCart(bookId) {
-            fetch('/api/cart/api/add_to_cart/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({ book_id: bookId })
-            })
+{% block title %}Books - Book Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0;
+        padding: 20px;
+    }
+    h1 {
+        color: #333;
+    }
+    a {
+        text-decoration: none;
+        color: #007bff;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    a:hover {
+        text-decoration: underline;
+    }
+    ul {
+        list-style: none;
+        padding: 0;
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    li {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 15px;
+    }
+    h2 {
+        margin: 0;
+        color: #333;
+    }
+    p {
+        margin: 5px 0;
+        color: #555;
+    }
+    button {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 10px;
+    }
+    button:hover {
+        background: #218838;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1>Books</h1>
+<a href="{% url 'logout' %}">Logout</a>
+<ul id="book-list">
+    <!-- Book items will be inserted here by JavaScript -->
+</ul>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/books/')
             .then(response => response.json())
             .then(data => {
-                if (data.error) {
-                    alert(data.error);
-                } else {
-                    alert(data.message);
-                }
+                const bookList = document.getElementById('book-list');
+                data.forEach(book => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <h2>${book.title}</h2>
+                        <p>${book.description}</p>
+                        <p>Price: $${book.price}</p>
+                        <button onclick="addToCart(${book.id})">Add to Cart</button>
+                    `;
+                    bookList.appendChild(li);
+                });
             });
-        }
-    </script>
-</body>
-</html>
+    });
+
+    function addToCart(bookId) {
+        fetch('/api/cart/api/add_to_cart/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ book_id: bookId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+            } else {
+                alert(data.message);
+            }
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment - Book Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0;
+        padding: 20px;
+    }
+    .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 500px;
+        text-align: center;
+        margin: 30px auto;
+    }
+    h1, h2 {
+        color: #333;
+    }
+    .payment-details {
+        margin-bottom: 20px;
+        text-align: left;
+        padding: 15px;
+        border: 1px solid #eee;
+        border-radius: 5px;
+    }
+    .payment-form {
+        text-align: left;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    input[type="text"],
+    input[type="number"],
+    select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+    button {
+        width: 100%;
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    button:hover {
+        background: #218838;
+    }
+    .cancel-link {
+        display: block;
+        margin-top: 15px;
+        color: #007bff;
+        text-decoration: none;
+    }
+    .cancel-link:hover {
+        text-decoration: underline;
+    }
+    .order-detail {
+        margin-bottom: 5px;
+    }
+    .order-total {
+        font-weight: bold;
+        font-size: 1.1em;
+        color: #28a745;
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Payment</h1>
+    
+    <div class="payment-details" id="order-details">
+        <h2>Order Details</h2>
+        <div id="order-info">
+            <!-- Order details will be loaded here -->
+        </div>
+    </div>
+    
+    <div class="payment-form" id="payment-form">
+        <h2>Payment Information</h2>
+        <div class="form-group">
+            <label for="payment_method">Payment Method</label>
+            <select id="payment_method" name="payment_method">
+                <option value="credit_card">Credit Card</option>
+                <option value="debit_card">Debit Card</option>
+                <option value="paypal">PayPal</option>
+            </select>
+        </div>
+        <div id="card-fields">
+            <div class="form-group">
+                <label for="card_number">Card Number</label>
+                <input type="text" id="card_number" name="card_number" placeholder="1234 5678 9012 3456">
+            </div>
+            <div class="form-group">
+                <label for="expiry_date">Expiry Date</label>
+                <input type="text" id="expiry_date" name="expiry_date" placeholder="MM/YY">
+            </div>
+            <div class="form-group">
+                <label for="cvv">CVV</label>
+                <input type="text" id="cvv" name="cvv" placeholder="123">
+            </div>
+            <div class="form-group">
+                <label for="cardholder_name">Cardholder Name</label>
+                <input type="text" id="cardholder_name" name="cardholder_name" placeholder="John Doe">
+            </div>
+        </div>
+        <button type="button" id="process-payment-btn">Confirm Payment</button>
+    </div>
+    
+    <a href="/order/details/{{ order_id }}/" class="cancel-link">Cancel</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Store order ID in a data attribute instead of directly in JavaScript
+        const orderIdElement = document.createElement('div');
+        orderIdElement.setAttribute('data-order-id', '{{ order_id }}');
+        const orderId = orderIdElement.getAttribute('data-order-id');
+        
+        let paymentId = null;
+        
+        // Load order details
+        fetch(`/api/order/api/order_details/${orderId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    window.location.href = '/order/history/';
+                    return;
+                }
+                
+                const orderInfo = document.getElementById('order-info');
+                orderInfo.innerHTML = `
+                    <div class="order-detail">Order #${data.order.id}</div>
+                    <div class="order-detail">Date: ${new Date(data.order.created_at).toLocaleString()}</div>
+                    <div class="order-total">Total: $${data.order.total_price}</div>
+                `;
+                
+                // Create payment for this order
+                return fetch(`/api/payment/api/create_payment/${orderId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                });
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.log(data.error);
+                    // If payment already exists, we can still continue
+                    if (data.payment_id) {
+                        paymentId = data.payment_id;
+                    }
+                } else {
+                    paymentId = data.payment.id;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while loading order details');
+            });
+            
+        // Handle payment method change
+        document.getElementById('payment_method').addEventListener('change', function(e) {
+            const cardFields = document.getElementById('card-fields');
+            cardFields.style.display = e.target.value.includes('card') ? 'block' : 'none';
+        });
+        
+        // Handle payment processing
+        document.getElementById('process-payment-btn').addEventListener('click', function() {
+            const paymentMethod = document.getElementById('payment_method').value;
+            const cardNumber = document.getElementById('card_number').value;
+            
+            if (paymentMethod.includes('card') && (!cardNumber || cardNumber.length < 10)) {
+                alert('Please enter a valid card number');
+                return;
+            }
+            
+            if (!paymentId) {
+                alert('Payment not initialized. Please try again.');
+                return;
+            }
+            
+            fetch(`/api/payment/api/process_payment/${paymentId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    payment_method: paymentMethod,
+                    card_number: cardNumber
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    alert(data.message);
+                    window.location.href = `/payment/success/${data.payment.id}/`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while processing payment');
+            });
+        });
+    });
+</script>
+{% endblock %}

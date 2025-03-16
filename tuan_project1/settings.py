@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     'customer',
     'cart',
     'book',
+    'order',  # Add order app
+    'shipment',  # Add shipment app
+    'payment',  # Add payment app
     'rest_framework',
 ]
 

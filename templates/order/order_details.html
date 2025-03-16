@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Details - Book Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 80%;
+        max-width: 800px;
+    }
+    h1, h2 {
+        color: #333;
+    }
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+    .order-meta {
+        color: #666;
+    }
+    .order-total {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #28a745;
+    }
+    .items-container {
+        margin-bottom: 30px;
+    }
+    .item-list {
+        list-style: none;
+        padding: 0;
+    }
+    .item {
+        display: flex;
+        justify-content: space-between;
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+    }
+    .item:last-child {
+        border-bottom: none;
+    }
+    .item-details {
+        flex: 1;
+    }
+    .item-title {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .item-price {
+        color: #666;
+    }
+    .item-quantity {
+        width: 100px;
+        text-align: center;
+        padding: 0 15px;
+    }
+    .item-subtotal {
+        width: 100px;
+        text-align: right;
+        font-weight: bold;
+    }
+    .summary {
+        border-top: 2px solid #eee;
+        padding-top: 15px;
+        text-align: right;
+    }
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 4px;
+        text-decoration: none;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        border: none;
+        font-size: 1em;
+    }
+    .btn-primary {
+        background: #007bff;
+    }
+    .btn-danger {
+        background: #dc3545;
+    }
+    .btn-secondary {
+        background: #6c757d;
+    }
+    .actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div id="order-details">
+        <div class="order-header">
+            <h1>Order #<span id="order-id"></span></h1>
+            <div class="order-meta">
+                <div id="order-date"></div>
+            </div>
+        </div>
+        
+        <div class="items-container">
+            <h2>Ordered Items</h2>
+            <ul id="order-items" class="item-list">
+                <!-- Items will be inserted here -->
+            </ul>
+            
+            <div class="summary">
+                <div class="order-total">Total: $<span id="order-total"></span></div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <a href="/order/history/" class="btn btn-secondary">Back to Orders</a>
+            <button id="cancel-order" class="btn btn-danger">Cancel Order</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Extract order ID from URL
+        const pathParts = window.location.pathname.split('/');
+        const orderId = pathParts[pathParts.length - 2];
+        
+        // Load order details
+        fetch(`/api/order/api/order_details/${orderId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    window.location.href = '/order/history/';
+                    return;
+                }
+                
+                // Populate order information
+                document.getElementById('order-id').textContent = data.order.id;
+                document.getElementById('order-date').textContent = new Date(data.order.created_at).toLocaleString();
+                document.getElementById('order-total').textContent = data.order.total_price;
+                
+                // Populate order items
+                const orderItemsList = document.getElementById('order-items');
+                data.items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'item';
+                    
+                    // We need to reconstruct how to get the book details from the cart_item
+                    li.innerHTML = `
+                        <div class="item-details">
+                            <div class="item-title">${item.cart_item}</div>
+                        </div>
+                        <div class="item-quantity">
+                            Qty: ${item.quantity}
+                        </div>
+                        <div class="item-subtotal" id="subtotal-${item.id}">
+                            <!-- Will be calculated if book price is available -->
+                        </div>
+                    `;
+                    orderItemsList.appendChild(li);
+                });
+                
+                // Setup cancel button
+                document.getElementById('cancel-order').addEventListener('click', function() {
+                    cancelOrder(orderId);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching order details:', error);
+                alert('An error occurred while fetching the order details.');
+                window.location.href = '/order/history/';
+            });
+    });
+    
+    function cancelOrder(orderId) {
+        if (confirm('Are you sure you want to cancel this order?')) {
+            fetch(`/api/order/api/cancel_order/${orderId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                    window.location.href = '/order/history/';
+                } else {
+                    alert(data.error || 'An error occurred while canceling the order.');
+                }
+            })
+            .catch(error => {
+                console.error('Error canceling order:', error);
+                alert('An error occurred while canceling the order.');
+            });
+        }
+    }
+</script>
+{% endblock %}

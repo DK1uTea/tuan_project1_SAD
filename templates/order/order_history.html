@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Order History - Book Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0;
+        padding: 20px;
+    }
+    .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 80%;
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: center;
+    }
+    h1 {
+        color: #333;
+    }
+    .order-list {
+        list-style: none;
+        padding: 0;
+        width: 100%;
+    }
+    .order-item {
+        background: #fff;
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 15px;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .order-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+    }
+    .order-id {
+        font-weight: bold;
+        color: #007bff;
+    }
+    .order-date {
+        color: #666;
+    }
+    .order-total {
+        font-weight: bold;
+        color: #28a745;
+    }
+    .order-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    .btn {
+        padding: 8px 15px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .btn-primary {
+        background: #007bff;
+        color: white;
+    }
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+    .btn-back {
+        display: inline-block;
+        background: #6c757d;
+        color: white;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        margin-top: 20px;
+    }
+    .no-orders {
+        color: #666;
+        font-style: italic;
+        margin: 20px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Your Orders</h1>
+    <ul id="order-list" class="order-list">
+        <!-- Orders will be inserted here by JavaScript -->
+    </ul>
+    <div id="no-orders" class="no-orders" style="display: none;">
+        You haven't placed any orders yet.
+    </div>
+    <a href="{% url 'book_list' %}" class="btn-back">Back to Shop</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/order/api/user_orders/')
+            .then(response => response.json())
+            .then(data => {
+                const orderList = document.getElementById('order-list');
+                const noOrders = document.getElementById('no-orders');
+                
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                if (data.length === 0) {
+                    noOrders.style.display = 'block';
+                    return;
+                }
+
+                data.forEach(order => {
+                    const orderDate = new Date(order.created_at).toLocaleString();
+                    
+                    const li = document.createElement('li');
+                    li.className = 'order-item';
+                    li.innerHTML = `
+                        <div class="order-header">
+                            <span class="order-id">Order #${order.id}</span>
+                            <span class="order-date">${orderDate}</span>
+                        </div>
+                        <div class="order-total">Total: $${order.total_price}</div>
+                        <div class="order-actions">
+                            <button class="btn btn-primary" onclick="viewOrderDetails(${order.id})">View Details</button>
+                            <button class="btn btn-danger" onclick="cancelOrder(${order.id})">Cancel Order</button>
+                        </div>
+                    `;
+                    orderList.appendChild(li);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching orders:', error);
+                alert('An error occurred while fetching your orders.');
+            });
+    });
+
+    function viewOrderDetails(orderId) {
+        window.location.href = `/order/details/${orderId}/`;
+    }
+
+    function cancelOrder(orderId) {
+        if (confirm('Are you sure you want to cancel this order?')) {
+            fetch(`/api/order/api/cancel_order/${orderId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                    // Refresh the page to see updated list
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'An error occurred while canceling the order.');
+                }
+            })
+            .catch(error => {
+                console.error('Error canceling order:', error);
+                alert('An error occurred while canceling the order.');
+            });
+        }
+    }
+</script>
+{% endblock %}

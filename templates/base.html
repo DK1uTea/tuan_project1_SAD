@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Book Store{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* Global Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Navbar Styles */
+        .navbar {
+            background-color: #333;
+            overflow: hidden;
+            position: sticky;
+            top: 0;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar a {
+            float: left;
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .navbar a:hover {
+            background-color: #555;
+        }
+
+        .navbar a.active {
+            background-color: #4CAF50;
+        }
+
+        .navbar-left {
+            display: flex;
+        }
+
+        .navbar-right {
+            display: flex;
+        }
+
+        .content {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        /* Mobile responsive */
+        @media screen and (max-width: 600px) {
+            .navbar-container {
+                flex-direction: column;
+            }
+            
+            .navbar-left, .navbar-right {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .navbar a {
+                width: 100%;
+                text-align: left;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-left">
+                <a href="{% url 'book_list' %}" {% if request.path == '/' %}class="active"{% endif %}>
+                    Home
+                </a>
+                <a href="{% url 'cart' %}" {% if '/cart/' in request.path %}class="active"{% endif %}>
+                    Cart
+                </a>
+                <a href="{% url 'order_history' %}" {% if '/order/history/' in request.path %}class="active"{% endif %}>
+                    Orders
+                </a>
+            </div>
+            <div class="navbar-right">
+                {% if user.is_authenticated %}
+                    <a href="/customers/{{ user.customer.id }}/" {% if '/customers/' in request.path %}class="active"{% endif %}>
+                        My Profile
+                    </a>
+                    <a href="{% url 'logout' %}">
+                        Logout
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" {% if '/login/' in request.path %}class="active"{% endif %}>
+                        Login
+                    </a>
+                    <a href="{% url 'register' %}" {% if '/register/' in request.path %}class="active"{% endif %}>
+                        Register
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

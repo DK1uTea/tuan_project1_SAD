@@ -1,79 +1,99 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Cart</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 350px;
-            text-align: center;
-        }
-        h1 {
-            color: #333;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-            width: 100%;
-        }
-        li {
-            background: #fff;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-            margin-bottom: 10px;
-            text-align: left;
-        }
-        h2 {
-            margin: 0;
-            color: #333;
-        }
-        p {
-            margin: 5px 0;
-            color: #555;
-        }
-        a {
-            display: block;
-            width: 100%;
-            background: #007bff;
-            color: white;
-            text-decoration: none;
-            padding: 10px;
-            margin-top: 15px;
-            border-radius: 4px;
-            text-align: center;
-        }
-        a:hover {
-            background: #0056b3;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Your Cart</h1>
-        <ul id="cart-items">
-            <!-- Cart items will be inserted here by JavaScript -->
-        </ul>
-        <a href="{% url 'checkout' %}">Checkout</a>
-    </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/api/cart/api/get_cart_items/')
-                .then(response => response.json())
-                .then(data => {
-                    const cartItems = document.getElementById('cart-items');
+{% extends 'base.html' %}
+
+{% block title %}Your Cart - Book Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0;
+        padding: 20px;
+    }
+    .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        text-align: center;
+    }
+    h1 {
+        color: #333;
+    }
+    ul {
+        list-style: none;
+        padding: 0;
+        width: 100%;
+    }
+    li {
+        background: #fff;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 10px;
+        text-align: left;
+    }
+    h2 {
+        margin: 0;
+        color: #333;
+    }
+    p {
+        margin: 5px 0;
+        color: #555;
+    }
+    .checkout-btn {
+        display: block;
+        width: 100%;
+        background: #007bff;
+        color: white;
+        text-decoration: none;
+        padding: 10px;
+        margin-top: 15px;
+        border-radius: 4px;
+        text-align: center;
+    }
+    .checkout-btn:hover {
+        background: #0056b3;
+    }
+    .empty-cart {
+        color: #666;
+        margin-top: 20px;
+        font-style: italic;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Your Cart</h1>
+    <ul id="cart-items">
+        <!-- Cart items will be inserted here by JavaScript -->
+    </ul>
+    <div id="empty-cart" class="empty-cart" style="display: none;">Your cart is empty.</div>
+    <a href="{% url 'checkout' %}" class="checkout-btn" id="checkout-btn" style="display: none;">Checkout</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/cart/api/get_cart_items/')
+            .then(response => response.json())
+            .then(data => {
+                const cartItems = document.getElementById('cart-items');
+                const emptyCart = document.getElementById('empty-cart');
+                const checkoutBtn = document.getElementById('checkout-btn');
+                
+                if (data.length === 0) {
+                    emptyCart.style.display = 'block';
+                } else {
+                    checkoutBtn.style.display = 'block';
                     data.forEach(item => {
                         const li = document.createElement('li');
                         li.innerHTML = `
@@ -83,8 +103,8 @@
                         `;
                         cartItems.appendChild(li);
                     });
-                });
-        });
-    </script>
-</body>
-</html>
+                }
+            });
+    });
+</script>
+{% endblock %}

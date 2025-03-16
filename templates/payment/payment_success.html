@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Successful</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 500px;
+            text-align: center;
+        }
+        .success-icon {
+            color: #28a745;
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #28a745;
+        }
+        p {
+            color: #555;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .payment-details {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            text-align: left;
+        }
+        .payment-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .payment-label {
+            font-weight: bold;
+        }
+        .buttons {
+            margin-top: 30px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            color: white;
+            margin: 0 10px;
+        }
+        .btn-primary {
+            background: #007bff;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">✓</div>
+        <h1>Payment Successful!</h1>
+        <p>Your payment has been processed successfully. Thank you for your purchase.</p>
+        
+        <div class="payment-details">
+            <div class="payment-row">
+                <span class="payment-label">Payment ID:</span>
+                <span id="payment-id"></span>
+            </div>
+            <div class="payment-row">
+                <span class="payment-label">Order ID:</span>
+                <span id="order-id"></span>
+            </div>
+            <div class="payment-row">
+                <span class="payment-label">Amount:</span>
+                <span id="amount"></span>
+            </div>
+            <div class="payment-row">
+                <span class="payment-label">Date:</span>
+                <span id="date"></span>
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <a href="/order/history/" class="btn btn-primary">View Orders</a>
+            <a href="{% url 'book_list' %}" class="btn btn-success">Continue Shopping</a>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Store payment ID in a data attribute instead of directly in JavaScript
+            const paymentIdElement = document.createElement('div');
+            paymentIdElement.setAttribute('data-payment-id', '{{ payment_id }}');
+            const paymentId = paymentIdElement.getAttribute('data-payment-id');
+            
+            // Fetch payment details - use a different API endpoint
+            fetch('/api/payment/api/get_payment_status/' + paymentId + '/')
+                .then(response => response.json())
+                .then(payment => {
+                    document.getElementById('payment-id').textContent = payment.id;
+                    document.getElementById('order-id').textContent = payment.order;
+                    document.getElementById('amount').textContent = '$' + payment.amount;
+                    
+                    // Only format the date if paid_at exists
+                    if (payment.paid_at) {
+                        document.getElementById('date').textContent = new Date(payment.paid_at).toLocaleString();
+                    } else {
+                        document.getElementById('date').textContent = 'Not available';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching payment details:', error);
+                    document.getElementById('payment-id').textContent = '{{ payment_id }}';
+                    document.getElementById('order-id').textContent = 'Not available';
+                    document.getElementById('amount').textContent = 'Not available';
+                    document.getElementById('date').textContent = 'Not available';
+                });
+        });
+    </script>
+</body>
+</html>

@@ -1,118 +1,124 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Checkout</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 350px;
-            text-align: center;
-        }
-        h1 {
-            color: #333;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-            width: 100%;
-        }
-        li {
-            background: #fff;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-            margin-bottom: 10px;
-            text-align: left;
-        }
-        h2 {
-            margin: 0;
-            color: #333;
-        }
-        p {
-            margin: 5px 0;
-            color: #555;
-        }
-        button {
-            width: 100%;
-            background: #28a745;
-            color: white;
-            border: none;
-            padding: 10px;
-            margin-top: 15px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background: #218838;
-        }
-        .cancel-link {
-            display: block;
-            margin-top: 15px;
-            color: #007bff;
-            text-decoration: none;
-        }
-        .cancel-link:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Order Summary</h1>
-        <ul id="order-items">
-            <!-- Order items will be inserted here by JavaScript -->
-        </ul>
-        <button id="confirm-order">Confirm Order</button>
-        <a href="{% url 'cart' %}" class="cancel-link">Cancel</a>
-    </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            fetch('/api/cart/api/get_cart_items/')
-                .then(response => response.json())
-                .then(data => {
-                    const orderItems = document.getElementById('order-items');
-                    data.forEach(item => {
-                        const li = document.createElement('li');
-                        li.innerHTML = `
-                            <h2>${item.book.title}</h2>
-                            <p>Quantity: ${item.quantity}</p>
-                            <p>Price: $${item.book.price}</p>
-                        `;
-                        orderItems.appendChild(li);
-                    });
-                });
+{% extends 'base.html' %}
 
-            document.getElementById('confirm-order').addEventListener('click', function() {
-                fetch('/api/cart/api/confirm_order/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message) {
-                        alert(data.message);
-                        window.location.href = '{% url "book_list" %}';
-                    } else {
-                        alert('An error occurred while confirming the order.');
-                    }
+{% block title %}Checkout - Book Store{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0;
+        padding: 20px;
+    }
+    .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        width: 350px;
+        text-align: center;
+        margin: 30px auto;
+    }
+    h1 {
+        color: #333;
+    }
+    ul {
+        list-style: none;
+        padding: 0;
+        width: 100%;
+    }
+    li {
+        background: #fff;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        margin-bottom: 10px;
+        text-align: left;
+    }
+    h2 {
+        margin: 0;
+        color: #333;
+    }
+    p {
+        margin: 5px 0;
+        color: #555;
+    }
+    button {
+        width: 100%;
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px;
+        margin-top: 15px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    button:hover {
+        background: #218838;
+    }
+    .cancel-link {
+        display: block;
+        margin-top: 15px;
+        color: #007bff;
+        text-decoration: none;
+    }
+    .cancel-link:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Order Summary</h1>
+    <ul id="order-items">
+        <!-- Order items will be inserted here by JavaScript -->
+    </ul>
+    <button id="confirm-order">Confirm Order</button>
+    <a href="{% url 'cart' %}" class="cancel-link">Cancel</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/cart/api/get_cart_items/')
+            .then(response => response.json())
+            .then(data => {
+                const orderItems = document.getElementById('order-items');
+                data.forEach(item => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <h2>${item.book.title}</h2>
+                        <p>Quantity: ${item.quantity}</p>
+                        <p>Price: $${item.book.price}</p>
+                    `;
+                    orderItems.appendChild(li);
                 });
             });
+
+        document.getElementById('confirm-order').addEventListener('click', function() {
+            // Updated to use the order service API
+            fetch('/api/order/api/confirm_order/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                    window.location.href = '{% url "book_list" %}';
+                } else {
+                    alert('An error occurred while confirming the order.');
+                }
+            });
         });
-    </script>
-</body>
-</html>
+    });
+</script>
+{% endblock %}
